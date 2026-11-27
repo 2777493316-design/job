@@ -1129,6 +1129,9 @@ window.JOB_MODEL = (function () {
       toast('已重置');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // 以前填过的话，打开就直接把结果显示出来，省一次点击
+    if (state.values.salary > 0) runCalc(true);
   }
 
   window.JOB_APP = { state: state, runCalc: runCalc, renderResult: renderResult, renderForm: renderForm, drawPoster: drawPoster };
