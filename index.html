@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5F5F5">
+<title>工作性价比计算器 · 10 个维度算清一份工作</title>
+<meta name="description" content="从薪资、工时、通勤、环境、管理、福利 10 个维度评估一份工作的综合价值，算出真实时薪和性价比分数。全部在本地计算。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="工作性价比计算器">
+<meta property="og:description" content="10 个维度，算清一份工作值不值。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='%23fff' font-family='sans-serif'%3E%E2%82%AC%3C/text%3E%3C/svg%3E">
+<style>
+/* 工作性价比计算器 · 黑白灰 */
+:root {
+  --bg: #F5F5F5;
+  --card: #FFFFFF;
+  --ink: #111111;
+  --ink-2: #444444;
+  --muted: #888888;
+  --line: #E6E6E6;
+  --line-2: #D4D4D4;
+  --fill: #111111;
+  --soft: #FAFAFA;
+  --radius: 12px;
+  --font: "PingFang SC", "HarmonyOS Sans SC", "Hiragino Sans GB", "Microsoft YaHei",
+    system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+[hidden] { display: none !important; }
+button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar .container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+}
+.brand i {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--ink);
+  display: inline-block;
+}
+.top-meta { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+.container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- 介绍 ---------- */
+.intro { padding: 34px 0 22px; }
+.intro h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+.intro p { margin: 0; font-size: 13px; color: var(--ink-2); max-width: 640px; line-height: 1.7; }
+.intro .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.intro .tags span {
+  font-size: 11px;
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  padding: 4px 10px;
+  background: #fff;
+}
+
+/* ---------- 布局 ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+  padding-bottom: 60px;
+}
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .intro h1 { font-size: 22px; }
+}
+
+/* ---------- 面板 ---------- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+}
+.panel-head h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.2px; }
+.panel-head .num {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+.panel-body { padding: 16px; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 560px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- 字段 ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .unit {
+  position: absolute;
+  right: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.field input[type="number"],
+.field input[type="text"],
+.field select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+}
+.field input[type="number"]::-webkit-outer-spin-button,
+.field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.field input[type="number"] { -moz-appearance: textfield; }
+.field select {
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+/* 勾选项 */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+.check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #111;
+  flex: none;
+}
+.check.on { border-color: var(--ink); color: var(--ink); }
+
+/* ---------- 按钮 ---------- */
+.actions { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.btn {
+  height: 46px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s, opacity 0.15s, background 0.15s;
+}
+.btn:active { transform: scale(0.985); }
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: #000; }
+.btn-ghost { background: #fff; color: var(--ink-2); border: 1px solid var(--line-2); }
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+.btn-sm { height: 38px; font-size: 13px; border-radius: 8px; }
+
+/* ---------- 结果 ---------- */
+.result-col { position: sticky; top: 76px; }
+.result-panel { margin-bottom: 12px; }
+.result-empty {
+  padding: 40px 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.result-empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 6px; }
+
+.score-row { display: flex; align-items: flex-end; gap: 10px; }
+.score-num {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.score-num span { font-size: 14px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+.level {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--ink);
+  border-radius: 99px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+.level.lv-poor { border-color: var(--line-2); color: var(--ink-2); }
+.verdict { margin: 12px 0 0; font-size: 12.5px; line-height: 1.75; color: var(--ink-2); }
+
+.metrics { margin-top: 16px; border-top: 1px solid var(--line); }
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.metric:last-child { border-bottom: 0; }
+.metric b { color: var(--ink); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.breakdown { margin-top: 16px; }
+.breakdown h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: space-between;
+}
+.bd-row { margin-bottom: 10px; }
+.bd-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-bottom: 4px;
+}
+.bd-top b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.bd-track { height: 5px; border-radius: 99px; background: #EEE; overflow: hidden; }
+.bd-track i { display: block; height: 100%; background: var(--ink); border-radius: 99px; transition: width 0.5s ease; }
+
+/* ---------- 提示 ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  font-size: 12.5px;
+  padding: 10px 16px;
+  border-radius: 99px;
+  z-index: 60;
+  max-width: 80vw;
+  text-align: center;
+  animation: tin 0.2s ease both;
+}
+@keyframes tin { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.err {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #B00020;
+  min-height: 16px;
+}
+
+/* ---------- 弹层（结果图） ---------- */
+.mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fade 0.2s ease both;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.sheet {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.sheet h3 { margin: 0 0 12px; font-size: 15px; text-align: center; }
+.sheet img { width: 100%; border-radius: 10px; display: block; aspect-ratio: 3 / 4; object-fit: cover; background: #EEE; }
+.sheet .btn { margin-top: 10px; }
+.sheet .hint { margin: 8px 0 0; font-size: 11px; color: var(--muted); text-align: center; }
+
+/* ---------- 页脚 ---------- */
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 20px 0 40px;
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* 说明文字与权重 */
+.advice { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.advice p { margin: 0 0 8px; font-size: 12px; line-height: 1.75; color: var(--ink-2); }
+.advice p:last-child { margin-bottom: 0; }
+.advice p b { color: var(--ink); margin-right: 6px; font-weight: 700; }
+.bd-top em.w {
+  font-style: normal;
+  margin-left: 6px;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.sheet .btn { width: 100%; }
+.result-panel { scroll-margin-top: 70px; }
+
+.bar { display: flex; flex-direction: column; }
+.bar .err { margin: 0 0 6px; }
+.bar .err:empty { display: none; }
+
+@media (max-width: 860px) {
+  body { padding-bottom: 104px; }
+  .result-col { position: static; }
+  .bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
+  }
+  .bar .actions { flex-direction: row; gap: 10px; margin: 0; }
+  .bar .actions .btn { flex: 1; height: 44px; }
+  .bar .actions .btn-ghost { flex: 0 0 34%; }
+}
+
+/* ========== 手机端排版 ========== */
+.mresult {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: var(--bg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: mrin 0.22s ease both;
+}
+@keyframes mrin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.mresult-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: none;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.mresult-back { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.mresult-back:active { opacity: 0.6; }
+.mresult-title { margin-left: auto; font-size: 12px; color: var(--muted); }
+.mresult-body { flex: 1 1 auto; padding: 12px 12px calc(28px + env(safe-area-inset-bottom)); }
+.mresult-body .panel { margin-bottom: 0; }
+.mresult-body .panel-body { padding: 18px 16px 24px; }
+.mresult-body .score-num { font-size: 64px; }
+.mresult-body .advice p { font-size: 12.5px; }
+body.mresult-open .bar { display: none; }
+
+@media (max-width: 860px) {
+  .container { padding: 0 16px; }
+  .intro { padding: 20px 0 16px; }
+  .intro h1 { font-size: 22px; margin-bottom: 6px; }
+  .intro p { font-size: 12.5px; line-height: 1.65; }
+  .intro .tags { margin-top: 10px; gap: 6px; }
+  .intro .tags span { font-size: 10.5px; padding: 3px 8px; }
+  .layout { gap: 12px; }
+  .panel { margin-bottom: 12px; border-radius: 10px; }
+  .panel-head { padding: 11px 14px; }
+  .panel-head h2 { font-size: 12.5px; }
+  .panel-body { padding: 12px; }
+
+  /* 数字两列，下拉与勾选整行 */
+  .grid { grid-template-columns: 1fr 1fr; gap: 10px 10px; }
+  .field--full { grid-column: 1 / -1; }
+  .field { gap: 4px; }
+  .field > label { font-size: 11px; }
+  .field input[type="number"],
+  .field input[type="text"],
+  .field select { height: 38px; padding: 0 10px; font-size: 14px; border-radius: 7px; }
+  .field select { padding-right: 26px; background-position: right 9px center; }
+  .input-wrap .unit { right: 10px; font-size: 11px; }
+  .check { padding: 9px 10px; font-size: 12.5px; border-radius: 7px; }
+  .check input { width: 15px; height: 15px; }
+
+  .result-col { margin-top: 0; }
+  .result-panel { display: none; }
+  .foot { padding: 16px 0 24px; font-size: 11px; }
+  .mresult-body .bd-row { margin-bottom: 9px; }
+}
+
+@media (max-width: 860px) {
+  /* 顶栏已经有站名，手机上不再重复大标题 */
+  .intro h1 { display: none; }
+  .intro { padding: 14px 0 12px; }
+  .intro p { font-size: 12.5px; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container">
+    <div class="brand"><i></i>工作性价比计算器</div>
+    <div class="top-meta">本地计算 · 数据不上传</div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="intro">
+    <h1>工作性价比计算器</h1>
+    <p>薪资、工时、通勤、环境、管理、福利……把 10 个维度折算成一个 0-100 的分数，顺便算清你的真实时薪。</p>
+    <div class="tags">
+      <span>10 个维度</span>
+      <span>含购买力折算</span>
+      <span>本地计算</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <div class="form-col" id="formCol"></div>
+
+    <aside class="result-col">
+      <div class="panel result-panel">
+        <div class="panel-head"><span class="num">✓</span><h2>计算结果</h2></div>
+        <div id="resultBody">
+          <div class="result-empty">
+            <b>还没开始算</b>
+            填好左边的信息，点下面的「计算性价比」
+          </div>
+        </div>
+      </div>
+      <div class="bar">
+        <p class="err" id="err"></p>
+        <div class="actions">
+          <button class="btn btn-primary" id="calcBtn" type="button">计算性价比</button>
+          <button class="btn btn-ghost" id="resetBtn" type="button">重置表单</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div class="mresult" id="mresult" hidden>
+  <div class="mresult-head">
+    <button class="mresult-back" id="mclose" type="button">‹ 返回修改</button>
+    <span class="mresult-title">计算结果</span>
+  </div>
+  <div class="mresult-body" id="mresultBody"></div>
+</div>
+
+<footer class="foot">
+  计算全部在浏览器本地完成，不上传任何数据。结果仅供参考，不构成职业建议。<br>
+  © <span id="footBrand">打工人小算盘</span>
+</footer>
+
+<script>
+/* 工作性价比 · 计算模型（纯函数） */
+window.JOB_MODEL = (function () {
+  'use strict';
+
+  var FIELDS = [
+    {
+      title: '基本信息', fields: [
+        { id: 'salary', label: '年薪总包', type: 'number', unit: '元', min: 0, max: 20000000, step: 1000, def: '', placeholder: '例如 240000', full: true },
+        {
+          id: 'country', label: '工作国家/地区', type: 'select', def: 'cn', options: [
+            ['中国大陆', 'cn'], ['中国香港', 'hk'], ['新加坡', 'sg'], ['日本', 'jp'], ['韩国', 'kr'],
+            ['美国', 'us'], ['英国', 'uk'], ['加拿大', 'ca'], ['澳大利亚', 'au'], ['德国', 'de'], ['其他', 'other']
+          ]
+        }
+      ]
+    },
+    {
+      title: '工作安排', fields: [
+        { id: 'workingDaysPerWeek', label: '每周工作天数', type: 'number', unit: '天', min: 1, max: 7, step: 0.5, def: 5 },
+        { id: 'wfhDaysPerWeek', label: '每周居家办公天数', type: 'number', unit: '天', min: 0, max: 7, step: 0.5, def: 0 },
+        { id: 'annualLeaveDays', label: '年假天数', type: 'number', unit: '天', min: 0, max: 50, step: 1, def: 5 },
+        { id: 'publicHolidays', label: '法定假日', type: 'number', unit: '天', min: 0, max: 30, step: 1, def: 13 },
+        { id: 'sickLeaveDays', label: '带薪病假', type: 'number', unit: '天', min: 0, max: 30, step: 1, def: 3 },
+        { id: 'totalWorkingHours', label: '每日总工时', type: 'number', unit: '小时', min: 1, max: 24, step: 0.5, def: 10 },
+        { id: 'commutingHours', label: '每日通勤时间', type: 'number', unit: '小时', min: 0, max: 12, step: 0.5, def: 2 },
+        { id: 'restHours', label: '每日休息 & 摸鱼时间', type: 'number', unit: '小时', min: 0, max: 12, step: 0.5, def: 2 }
+      ]
+    },
+    {
+      title: '个人背景', fields: [
+        {
+          id: 'educationLevel', label: '学历水平', type: 'select', def: 'bachelor', options: [
+            ['高中及以下', 'highSchool'], ['专科', 'associate'], ['本科', 'bachelor'], ['硕士', 'master'], ['博士', 'phd']
+          ]
+        },
+        {
+          id: 'schoolType', label: '学校类型', type: 'select', def: 'regular', options: [
+            ['顶尖院校（C9/常春藤）', 'top'], ['双一流 / QS200 / USNews80', 'double-first-class'], ['普通本科', 'regular'], ['职业院校', 'vocational']
+          ]
+        },
+        {
+          id: 'workExperience', label: '工作年限', type: 'select', def: '3-5years', options: [
+            ['应届生', 'fresh-graduate'], ['1-3 年', '1-3years'], ['3-5 年', '3-5years'], ['5-10 年', '5-10years'], ['10 年以上', '10plus']
+          ]
+        },
+        {
+          id: 'jobStability', label: '职业稳定度', type: 'select', def: 'private-enterprise', options: [
+            ['政府 / 事业单位', 'government'], ['国企 / 大型企业', 'state-owned'], ['外企 / 平台企业', 'foreign-enterprise'],
+            ['私企 / 股权文化', 'private-enterprise'], ['创业公司', 'startup'], ['自由职业', 'freelance']
+          ]
+        }
+      ]
+    },
+    {
+      title: '工作环境', fields: [
+        {
+          id: 'workEnvironment', label: '工作环境类型', type: 'select', def: 'general', options: [
+            ['CBD 写字楼', 'cbd'], ['普通环境', 'general'], ['工厂 / 工地 / 户外', 'factory-office'], ['偏僻的工厂 / 工地 / 户外', 'remote-factory']
+          ]
+        },
+        {
+          id: 'cityTier', label: '所在城市等级', type: 'select', def: 'tier-2', options: [
+            ['一线城市', 'tier-1'], ['新一线', 'tier-new-1'], ['二线城市', 'tier-2'], ['三线城市', 'tier-3'],
+            ['四线城市', 'tier-4'], ['县城', 'county'], ['乡村', 'rural']
+          ]
+        },
+        { id: 'isHometown', label: '在家乡工作', type: 'check', def: false }
+      ]
+    },
+    {
+      title: '管理层面', fields: [
+        {
+          id: 'leadership', label: '领导 / 老板', type: 'select', def: 'moderate', options: [
+            ['善解人意', 'understanding'], ['中规中矩', 'moderate'], ['管理严格', 'strict'], ['对我不亲', 'difficult']
+          ]
+        },
+        {
+          id: 'colleagueEnvironment', label: '同事环境', type: 'select', def: 'general', options: [
+            ['和谐友好', 'harmonious'], ['普通友好', 'general'], ['竞争激烈', 'competitive'], ['勾心斗角', 'conflicting']
+          ]
+        },
+        { id: 'isInnerCircle', label: '是领导嫡系', type: 'check', def: false }
+      ]
+    },
+    {
+      title: '福利待遇', fields: [
+        { id: 'shuttleService', label: '有班车服务', type: 'check', def: false },
+        {
+          id: 'cafeteriaStatus', label: '食堂情况', type: 'select', def: 'self', options: [
+            ['免费食堂', 'free'], ['有餐补', 'subsidy'], ['自费食堂', 'self'], ['没有食堂', 'none']
+          ]
+        }
+      ]
+    }
+  ];
+
+  var PPP = { cn: 1, hk: 1.5, sg: 1.6, jp: 1.4, kr: 1.35, us: 2.0, uk: 1.7, ca: 1.7, au: 1.75, de: 1.6, other: 1.3 };
+
+  var EDU = { highSchool: 60, associate: 70, bachelor: 80, master: 90, phd: 95 };
+  var SCHOOL = { top: 10, 'double-first-class': 7, regular: 4, vocational: 3 };
+  var EXP = { 'fresh-graduate': 60, '1-3years': 68, '3-5years': 78, '5-10years': 88, '10plus': 95 };
+  var STAB = { government: 95, 'state-owned': 88, 'foreign-enterprise': 80, 'private-enterprise': 68, startup: 45, freelance: 30 };
+  var ENV = { cbd: 95, general: 75, 'factory-office': 45, 'remote-factory': 30 };
+  var CITY = { 'tier-1': 90, 'tier-new-1': 82, 'tier-2': 72, 'tier-3': 60, 'tier-4': 50, county: 42, rural: 35 };
+  var LEAD = { understanding: 90, moderate: 70, strict: 50, difficult: 30 };
+  var COLL = { harmonious: 100, general: 80, competitive: 60, conflicting: 40 };
+  var CAFE = { free: 100, subsidy: 75, self: 45, none: 25 };
+
+  var WEIGHTS = [
+    { key: 'salary', name: '薪资水平', w: 0.30 },
+    { key: 'education', name: '教育背景', w: 0.10 },
+    { key: 'experience', name: '工作经验', w: 0.10 },
+    { key: 'stability', name: '职业稳定', w: 0.08 },
+    { key: 'environment', name: '工作环境', w: 0.08 },
+    { key: 'geo', name: '地理位置', w: 0.08 },
+    { key: 'management', name: '管理层面', w: 0.08 },
+    { key: 'wlb', name: '工作平衡', w: 0.08 },
+    { key: 'career', name: '职业发展', w: 0.05 },
+    { key: 'benefits', name: '福利待遇', w: 0.05 }
+  ];
+
+  var LEVELS = [
+    { min: 85, key: 'excellent', name: '优秀', verdict: '这份工作的综合价值在 85 分以上——属于"别人问你为什么还不跳槽"的那种。' },
+    { min: 70, key: 'good', name: '良好', verdict: '整体不错，钱和付出基本匹配。剩下的是你愿不愿意继续换这个价。' },
+    { min: 55, key: 'average', name: '一般', verdict: '不上不下。有维度在拖后腿，看一眼明细里最低的那两项。' },
+    { min: 0, key: 'poor', name: '较差', verdict: '按这套算法，这份工作的综合回报偏低，至少有一个维度需要重新谈。' }
+  ];
+
+  var ADVICE = {
+    salary: '薪资是权重最大的一项（30%）。谈薪、跳槽、或者把通勤和加班砍下来，都会直接抬高有效时薪。',
+    education: '学历和学校是既成事实，权重 10%，能补的是经验和发展。',
+    experience: '年限越久分数越高，但 5 年之后的增幅会变慢——这时候该拼的是平台和作品。',
+    stability: '稳定性低不一定是坏事，但它会扣分；用现金补偿（更高的薪资或股权）来对冲。',
+    environment: '环境分由办公条件和同事关系各占一半。换不了公司，可以先换工位和项目组。',
+    geo: '城市等级和是否在家乡占了 8%。离家近本身就是一种隐性收入。',
+    management: '领导占 8%，嫡系最多加 15 分——这也是为什么有人干得少却更舒服。',
+    wlb: '工作平衡是唯一你能立刻改善的一项：把休息时间、通勤、居家天数动一动，分数就会变。',
+    career: '发展分由平台、环境和年限推导。如果一年后你还在做同样的事，这项会一直低。',
+    benefits: '班车和食堂看起来是小事，但它们是每天都要兑现的现金。'
+  };
+
+  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+  function num(n) { return Math.round(n).toLocaleString('en-US'); }
+  function one(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+  function pct(n) { return Math.round(n * 100) + '%'; }
+
+  function defaults() {
+    var v = {};
+    FIELDS.forEach(function (s) {
+      s.fields.forEach(function (f) {
+        v[f.id] = f.type === 'check' ? !!f.def : f.def;
+      });
+    });
+    return v;
+  }
+
+  function calc(v) {
+    var days = clamp(v.workingDaysPerWeek, 1, 7);
+    var weekend = Math.round((7 - days) * 52);
+    var leave = (v.annualLeaveDays || 0) + (v.publicHolidays || 0) + (v.sickLeaveDays || 0);
+    var workDays = Math.max(1, 365 - weekend - leave);
+
+    var realHours = Math.max(0.5, v.totalWorkingHours - v.restHours);
+    var actualHours = workDays * realHours;
+    var occupiedHours = workDays * (v.totalWorkingHours + v.commutingHours);
+
+    var salary = Math.max(0, v.salary);
+    var hourly = salary / actualHours;
+    var effectiveHourly = salary / occupiedHours;
+    var adjusted = effectiveHourly / (PPP[v.country] || 1);
+
+    var salaryScore = 100 * (1 - Math.exp(-adjusted / 55));
+    var educationScore = clamp((EDU[v.educationLevel] || 60) + (SCHOOL[v.schoolType] || 0), 0, 100);
+    var experienceScore = EXP[v.workExperience] || 60;
+    var stabilityScore = STAB[v.jobStability] || 60;
+    var environmentScore = 0.5 * (ENV[v.workEnvironment] || 60) + 0.5 * (COLL[v.colleagueEnvironment] || 60);
+    var geoScore = clamp((CITY[v.cityTier] || 60) + (v.isHometown ? 10 : 0), 0, 100);
+    var managementScore = clamp((LEAD[v.leadership] || 60) + (v.isInnerCircle ? 15 : 0), 0, 100);
+
+    var weekOccupied = (v.totalWorkingHours + v.commutingHours) * days;
+    var wlbBase = 100 * clamp((75 - weekOccupied) / 45, 0, 1);
+    var wlbLeave = clamp((leave - 18) * 1.2, -10, 10);
+    var wlbScore = clamp(wlbBase + wlbLeave, 0, 100);
+
+    var careerScore = clamp(0.5 * stabilityScore + 0.3 * environmentScore + 0.2 * experienceScore, 0, 100);
+    var benefitsScore = 0.5 * (v.shuttleService ? 100 : 0) + 0.5 * (CAFE[v.cafeteriaStatus] || 40);
+
+    var raw = {
+      salary: salaryScore, education: educationScore, experience: experienceScore,
+      stability: stabilityScore, environment: environmentScore, geo: geoScore,
+      management: managementScore, wlb: wlbScore, career: careerScore, benefits: benefitsScore
+    };
+
+    var dims = WEIGHTS.map(function (x) {
+      return { key: x.key, name: x.name, w: x.w, score: Math.round(raw[x.key]), contribution: raw[x.key] * x.w };
+    });
+
+    var remoteBonus = Math.min(20, (v.wfhDaysPerWeek || 0) * 3 + (v.wfhDaysPerWeek || 0) * (v.commutingHours || 0) * 0.8);
+    var total = dims.reduce(function (a, d) { return a + d.contribution; }, 0) + remoteBonus;
+    var score = clamp(Math.round(total), 0, 100);
+
+    return {
+      score: score,
+      level: levelOf(score),
+      dims: dims,
+      remoteBonus: remoteBonus,
+      workDays: workDays,
+      actualHours: actualHours,
+      occupiedHours: occupiedHours,
+      hourly: hourly,
+      effectiveHourly: effectiveHourly,
+      adjustedHourly: adjusted
+    };
+  }
+
+  function levelOf(score) {
+    for (var i = 0; i < LEVELS.length; i++) if (score >= LEVELS[i].min) return LEVELS[i];
+    return LEVELS[LEVELS.length - 1];
+  }
+
+  function weakest(r, n) {
+    return r.dims.slice().sort(function (a, b) { return a.score - b.score; }).slice(0, n || 2);
+  }
+
+  function adviceList(r) {
+    return weakest(r, 2).map(function (d) { return { name: d.name, text: ADVICE[d.key] }; });
+  }
+
+  return {
+    FIELDS: FIELDS, WEIGHTS: WEIGHTS, LEVELS: LEVELS,
+    defaults: defaults, calc: calc, levelOf: levelOf, weakest: weakest, adviceList: adviceList,
+    num: num, one: one, pct: pct
+  };
+})();
+
+</script>
+<script>
+/* 工作性价比计算器 · 界面逻辑 */
+(function () {
+  'use strict';
+
+  var M = window.JOB_MODEL;
+  var KEY = 'jobworth.v2';
+  var CONFIG = { brand: '打工人小算盘', handle: '@打工人小算盘' };
+
+  var $ = function (s, root) { return (root || document).querySelector(s); };
+  var state = { values: M.defaults(), result: null, live: false };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function toast(msg) {
+    var old = $('.toast');
+    if (old) old.remove();
+    var d = document.createElement('div');
+    d.className = 'toast';
+    d.textContent = msg;
+    document.body.appendChild(d);
+    setTimeout(function () { d.remove(); }, 2000);
+  }
+
+  /* ---------- 存储 ---------- */
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state.values)); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      var base = M.defaults();
+      Object.keys(base).forEach(function (k) {
+        if (d[k] !== undefined) base[k] = d[k];
+      });
+      state.values = base;
+    } catch (e) {}
+  }
+
+  /* ---------- 渲染表单 ---------- */
+  function fieldHtml(f) {
+    var v = state.values[f.id];
+    var span = (f.type === 'number' && !f.full) ? 'field--half' : 'field--full';
+    var h = '<div class="field ' + span + '" data-field="' + f.id + '">';
+    if (f.type === 'check') {
+      h += '<label class="check' + (v ? ' on' : '') + '">' +
+        '<input type="checkbox" data-id="' + f.id + '"' + (v ? ' checked' : '') + '>' +
+        '<span>' + esc(f.label) + '</span></label>';
+      return h + '</div>';
+    }
+    h += '<label for="f-' + f.id + '">' + esc(f.label) + '</label>';
+    if (f.type === 'select') {
+      h += '<select id="f-' + f.id + '" data-id="' + f.id + '">';
+      f.options.forEach(function (o) {
+        h += '<option value="' + o[1] + '"' + (v === o[1] ? ' selected' : '') + '>' + esc(o[0]) + '</option>';
+      });
+      h += '</select>';
+    } else {
+      h += '<div class="input-wrap"><input id="f-' + f.id + '" data-id="' + f.id + '" type="number"' +
+        ' inputmode="decimal" min="' + f.min + '" max="' + f.max + '" step="' + f.step + '"' +
+        ' value="' + v + '"' + (f.placeholder ? ' placeholder="' + esc(f.placeholder) + '"' : '') + '>' +
+        (f.unit ? '<span class="unit">' + f.unit + '</span>' : '') + '</div>';
+    }
+    return h + '</div>';
+  }
+
+  function renderForm() {
+    var html = '';
+    M.FIELDS.forEach(function (sec, i) {
+      html += '<section class="panel">' +
+        '<div class="panel-head"><span class="num">' + (i + 1) + '</span><h2>' + esc(sec.title) + '</h2></div>' +
+        '<div class="panel-body"><div class="grid">' +
+        sec.fields.map(fieldHtml).join('') +
+        '</div></div></section>';
+    });
+    $('#formCol').innerHTML = html;
+
+    $('#formCol').addEventListener('input', onInput);
+    $('#formCol').addEventListener('change', onInput);
+  }
+
+  function onInput(e) {
+    var el = e.target;
+    var id = el.getAttribute('data-id');
+    if (!id) return;
+    if (el.type === 'checkbox') {
+      state.values[id] = el.checked;
+      el.closest('.check').classList.toggle('on', el.checked);
+    } else if (el.type === 'number') {
+      var n = parseFloat(el.value);
+      state.values[id] = isNaN(n) ? 0 : n;
+    } else {
+      state.values[id] = el.value;
+    }
+    save();
+    $('#err').textContent = '';
+    if (state.live) scheduleCalc();
+  }
+
+  var timer = null;
+  function scheduleCalc() {
+    clearTimeout(timer);
+    timer = setTimeout(function () { runCalc(true); }, 260);
+  }
+
+  /* ---------- 计算 ---------- */
+  function runCalc(silent) {
+    if (!(state.values.salary > 0)) {
+      $('#err').textContent = '先填一下「年薪总包」，才能算性价比。';
+      var s = $('#f-salary');
+      if (s) { s.focus(); s.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      return;
+    }
+    $('#err').textContent = '';
+    state.result = M.calc(state.values);
+    state.live = true;
+    renderResult();
+    if (!silent && window.innerWidth < 860) openMobileResult();
+  }
+
+  function resultHtml() {
+    var r = state.result;
+    var lv = r.level;
+    var html = '<div class="panel-body">';
+
+    html += '<div class="score-row">' +
+      '<div class="score-num">' + r.score + '<span> / 100</span></div>' +
+      '<div class="level lv-' + lv.key + '">' + lv.name + '</div>' +
+      '</div>';
+    html += '<p class="verdict">' + esc(lv.verdict) + '</p>';
+
+    html += '<div class="metrics">' +
+      '<div class="metric"><span>有效工作天数</span><b>' + M.num(r.workDays) + ' 天</b></div>' +
+      '<div class="metric"><span>实际工作小时</span><b>' + M.num(r.actualHours) + ' 小时 / 年</b></div>' +
+      '<div class="metric"><span>时薪</span><b>¥' + M.one(r.hourly) + '</b></div>' +
+      '<div class="metric"><span>有效时薪</span><b>¥' + M.one(r.effectiveHourly) + '</b></div>' +
+      (r.remoteBonus > 0.5 ? '<div class="metric"><span>远程办公加分</span><b>+' + Math.round(r.remoteBonus) + '</b></div>' : '') +
+      '</div>';
+
+    html += '<div class="breakdown"><h3><span>评分明细</span><span>权重</span></h3>' +
+      r.dims.map(function (d) {
+        return '<div class="bd-row">' +
+          '<div class="bd-top"><span>' + d.name + '<em class="w">' + Math.round(d.w * 100) + '%</em></span>' +
+          '<b>' + d.score + '</b></div>' +
+          '<div class="bd-track"><i style="width:' + Math.max(0, Math.min(100, d.score)) + '%"></i></div>' +
+          '</div>';
+      }).join('') + '</div>';
+
+    html += '<div class="advice">' + M.adviceList(r).map(function (a) {
+      return '<p><b>' + a.name + '</b>' + esc(a.text) + '</p>';
+    }).join('') + '</div>';
+
+    html += '<button class="btn btn-ghost btn-sm js-save" type="button" style="width:100%;margin-top:14px">保存结果图</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderResult() {
+    var html = resultHtml();
+    $('#resultBody').innerHTML = html;
+    var mob = $('#mresultBody');
+    if (mob) mob.innerHTML = html;
+    document.querySelectorAll('.js-save').forEach(function (b) {
+      b.addEventListener('click', openPoster);
+    });
+  }
+
+  function openMobileResult() {
+    var m = $('#mresult');
+    if (!m) return;
+    m.hidden = false;
+    document.body.classList.add('mresult-open');
+    document.body.style.overflow = 'hidden';
+    m.scrollTop = 0;
+  }
+
+  function closeMobileResult() {
+    var m = $('#mresult');
+    if (!m) return;
+    m.hidden = true;
+    document.body.classList.remove('mresult-open');
+    document.body.style.overflow = '';
+  }
+
+  /* ---------- 结果图 ---------- */
+  var SANS = '"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath();
+    if (g.roundRect) { g.roundRect(x, y, w, h, r); return; }
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r);
+    g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r);
+    g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+  }
+
+  function drawPoster(r) {
+    var W = 1080, H = 1440;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var g = cv.getContext('2d');
+    function font(w2, s) { return w2 + ' ' + s + 'px ' + SANS; }
+
+    g.fillStyle = '#FFFFFF';
+    g.fillRect(0, 0, W, H);
+
+    // 外框
+    g.strokeStyle = '#111111';
+    g.lineWidth = 2;
+    g.strokeRect(48, 48, W - 96, H - 96);
+
+    g.textAlign = 'left';
+    g.fillStyle = '#111111';
+    g.font = font(700, 30);
+    g.fillText('工作性价比计算器', 96, 128);
+    g.textAlign = 'right';
+    g.fillStyle = '#888888';
+    g.font = font(500, 26);
+    g.fillText(new Date().toLocaleDateString('zh-CN'), W - 96, 128);
+
+    // 分数
+    g.textAlign = 'left';
+    g.fillStyle = '#111111';
+    g.font = font(900, 320);
+    g.fillText(String(r.score), 96, 520);
+    g.fillStyle = '#888888';
+    g.font = font(600, 40);
+    g.fillText('/ 100', 96 + 12, 610);
+
+    // 等级
+    g.font = font(700, 44);
+    var label = r.level.name;
+    var tw = g.measureText(label).width + 60;
+    roundRect(g, W - 96 - tw, 360, tw, 78, 39);
+    g.fillStyle = '#111111';
+    g.fill();
+    g.fillStyle = '#FFFFFF';
+    g.textAlign = 'center';
+    g.fillText(label, W - 96 - tw / 2, 412);
+
+    // 分割线
+    g.fillStyle = '#111111';
+    g.fillRect(96, 680, W - 192, 2);
+
+    // 四个数字
+    var stats = [
+      ['有效时薪', '¥' + M.one(r.effectiveHourly)],
+      ['时薪', '¥' + M.one(r.hourly)],
+      ['年工作小时', M.num(r.actualHours)],
+      ['有效工作天数', M.num(r.workDays)]
+    ];
+    g.textAlign = 'left';
+    stats.forEach(function (s, i) {
+      var col = i % 2, row = Math.floor(i / 2);
+      var x = 96 + col * 456;
+      var y = 770 + row * 120;
+      g.fillStyle = '#888888';
+      g.font = font(500, 26);
+      g.fillText(s[0], x, y);
+      g.fillStyle = '#111111';
+      g.font = font(700, 52);
+      g.fillText(s[1], x, y + 56);
+    });
+
+    // 最低三项
+    g.fillStyle = '#111111';
+    g.font = font(700, 30);
+    g.fillText('最该调整的三项', 96, 1040);
+    var lows = r.dims.slice().sort(function (a, b) { return a.score - b.score; }).slice(0, 3);
+    lows.forEach(function (d, i) {
+      var y = 1096 + i * 72;
+      g.fillStyle = '#111111';
+      g.font = font(500, 28);
+      g.fillText(d.name, 96, y + 20);
+      // 轨道
+      roundRect(g, 300, y + 2, 480, 16, 8);
+      g.fillStyle = '#EDEDED';
+      g.fill();
+      roundRect(g, 300, y + 2, 480 * Math.max(0, Math.min(100, d.score)) / 100, 16, 8);
+      g.fillStyle = '#111111';
+      g.fill();
+      g.textAlign = 'right';
+      g.font = font(700, 28);
+      g.fillText(String(d.score), W - 96, y + 20);
+      g.textAlign = 'left';
+    });
+
+    // 页脚
+    g.fillStyle = '#888888';
+    g.font = font(500, 26);
+    g.fillText(CONFIG.brand + ' · 10 个维度算清一份工作', 96, 1348);
+    g.textAlign = 'right';
+    g.fillText(CONFIG.handle, W - 96, 1348);
+
+    return cv;
+  }
+
+  function openPoster() {
+    if (!state.result) return;
+    var cv = drawPoster(state.result);
+    var url = cv.toDataURL('image/png');
+    var mask = document.createElement('div');
+    mask.className = 'mask';
+    mask.innerHTML = '<div class="sheet"><h3>结果图</h3>' +
+      '<img id="posterImg" alt="工作性价比结果图">' +
+      '<button class="btn btn-primary" id="posterSave">保存图片</button>' +
+      '<button class="btn btn-ghost" id="posterClose">关闭</button>' +
+      '<p class="hint">手机上长按图片也能保存</p></div>';
+    document.body.appendChild(mask);
+    document.body.style.overflow = 'hidden';
+    $('#posterImg', mask).src = url;
+    $('#posterClose', mask).addEventListener('click', close);
+    mask.addEventListener('click', function (e) { if (e.target === mask) close(); });
+
+    function close() {
+      mask.remove();
+      var m = $('#mresult');
+      document.body.style.overflow = (m && !m.hidden) ? 'hidden' : '';
+    }
+    $('#posterSave', mask).addEventListener('click', function () {
+      cv.toBlob(function (blob) {
+        if (!blob) { toast('保存失败，试试长按图片'); return; }
+        var u = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = u;
+        a.download = '工作性价比-' + state.result.score + '分.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(u); }, 3000);
+        toast('已保存');
+      }, 'image/png');
+    });
+  }
+
+  /* ---------- 启动 ---------- */
+  function init() {
+    load();
+    renderForm();
+    $('#footBrand').textContent = CONFIG.brand;
+    $('#calcBtn').addEventListener('click', function () { runCalc(false); });
+    var mclose = $('#mclose');
+    if (mclose) mclose.addEventListener('click', closeMobileResult);
+    $('#resetBtn').addEventListener('click', function () {
+      state.values = M.defaults();
+      state.result = null;
+      state.live = false;
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      renderForm();
+      $('#resultBody').innerHTML = '<div class="result-empty"><b>还没开始算</b>填好左边的信息，点下面的「计算性价比」</div>';
+      $('#err').textContent = '';
+      toast('已重置');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  window.JOB_APP = { state: state, runCalc: runCalc, renderResult: renderResult, renderForm: renderForm, drawPoster: drawPoster };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+
+</script>
+</body>
+</html>
